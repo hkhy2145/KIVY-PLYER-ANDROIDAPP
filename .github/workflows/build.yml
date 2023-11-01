@@ -1,56 +1,35 @@
-name: Build (with Buildozer master)
+name: Build Kivy APK
+
 on:
   push:
-    branches-ignore:
-      - data
-      - gh-pages
-    tags:
-      - '**'
+    branches:
+      - main  # Replace with your main branch name
   pull_request:
-    branches-ignore:
-      - data
-      - gh-pages
-  schedule:
-      - cron: 0 0 */4 * * # at 00:00 UTC every fourth day
+    branches:
+      - main  # Replace with your main branch name
 
 jobs:
-  # Build job. Builds app for Android with Buildozer
-  build-android:
-    name: Build for Android (with Buildozer master)
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: master
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
-      - name: Build with Buildozer
-        uses: ./master # REPLACE WITH ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          repository_root: master
-          workdir: test_app
-          buildozer_version: master
+    - name: Build Kivy APK
+      run: |
+        docker build --tag=buildozer .
+        docker run --volume $(pwd):/home/user/hostcwd buildozer buildozer init
+        # Modify the buildozer.spec file as mentioned in your post
+        docker run --volume $(pwd):/home/user/hostcwd buildozer buildozer android debug
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: package
-          path: ${{ steps.buildozer.outputs.filename }}
+    - name: List Containers
+      run: docker ps -a
 
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: data
-          ref: data # Branch name
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-          architecture: x64
-
-      - name: Push binary to data branch
-        if: github.event_name == 'push'
-        run: python master/.ci/move_binary.py "${{ steps.buildozer.outputs.filename }}" master data bin-with-master
+    - name: Commit and Push to Registry
+      run: |
+        IMAGE_NAME=registry.gitlab.com/my_user/my_repo:latest
+        CONTAINER_ID=$(docker ps -lq)
+        docker commit $CONTAINER_ID $IMAGE_NAME
+        docker login registry.gitlab.com -u $GITLAB_USER -p $GITLAB_TOKEN  # Replace with your GitLab credentials
+        docker push $IMAGE_NAME
