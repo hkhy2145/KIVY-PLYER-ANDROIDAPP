@@ -25,11 +25,11 @@ jobs:
           git clone https://github.com/kivy/buildozer
           cd buildozer
           docker build --tag=buildozer .
-
+      
           # Initialize your project and build the APK
-          docker run --volume "$(pwd)":/home/user/hostcwd buildozer buildozer init
+          docker run --volume "$(pwd)":/home/user/hostcwd buildozer /usr/local/bin/buildozer init
           # Make any necessary modifications to the buildozer.spec file here
-          docker run --volume "$(pwd)":/home/user/hostcwd buildozer android debug
+          docker run --volume "$(pwd)":/home/user/hostcwd buildozer /usr/local/bin/buildozer android debug
 
       - name: Upload APK
         if: success()
