@@ -1,35 +1,32 @@
-name: Build Kivy APK
+name: Build and Convert Kivy App to APK
 
 on:
   push:
     branches:
-      - main  # Replace with your main branch name
-  pull_request:
-    branches:
-      - main  # Replace with your main branch name
+      - main
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Build Kivy APK
-      run: |
-        docker build --tag=buildozer .
-        docker run --volume $(pwd):/home/user/hostcwd buildozer buildozer init
-        # Modify the buildozer.spec file as mentioned in your post
-        docker run --volume $(pwd):/home/user/hostcwd buildozer buildozer android debug
+      - name: Build and Convert Kivy App to APK
+        run: |
+          # Pull the Docker image from your registry
+          docker pull registry.gitlab.com/my_user/my_repo:latest
 
-    - name: List Containers
-      run: docker ps -a
+          # Verify that the Dockerfile is in the current directory
+          ls -l
 
-    - name: Commit and Push to Registry
-      run: |
-        IMAGE_NAME=registry.gitlab.com/my_user/my_repo:latest
-        CONTAINER_ID=$(docker ps -lq)
-        docker commit $CONTAINER_ID $IMAGE_NAME
-        docker login registry.gitlab.com -u $GITLAB_USER -p $GITLAB_TOKEN  # Replace with your GitLab credentials
-        docker push $IMAGE_NAME
+          # Run the docker build command
+          docker build --tag=buildozer .
+
+      - name: Upload APK Artifact
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: kivy-apk
+          path: bin
