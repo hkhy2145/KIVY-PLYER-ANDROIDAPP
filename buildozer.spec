@@ -84,7 +84,7 @@ fullscreen = 0
 # for general documentation.
 # Lottie files can be created using various tools, like Adobe After Effect or Synfig.
 #android.presplash_lottie = "path/to/lottie/file.json"
-
+android.accept_sdk_license = True
 # (list) Permissions
 android.permissions = CAMERA, FLASHLIGHT
 
