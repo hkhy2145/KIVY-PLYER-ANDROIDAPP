@@ -1,32 +1,40 @@
-name: Build and Convert Kivy App to APK
+name: Build Android APK
 
 on:
   push:
     branches:
-      - main
+      - main  # You can adjust the branch name here
 
 jobs:
-  build-apk:
+  build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build and Convert Kivy App to APK
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7  # Adjust the Python version if needed
+
+      - name: Build with Buildozer
         run: |
-          # Pull the Docker image from your registry
-          docker pull registry.gitlab.com/my_user/my_repo:latest
-
-          # Verify that the Dockerfile is in the current directory
-          ls -l
-
-          # Run the docker build command
+          # Clone the Buildozer repository and build the Docker image
+          git clone https://github.com/kivy/buildozer
+          cd buildozer
           docker build --tag=buildozer .
 
-      - name: Upload APK Artifact
+          # Initialize your project and build the APK
+          docker run --volume "$(pwd)":/home/user/hostcwd buildozer buildozer init
+          # Make any necessary modifications to the buildozer.spec file here
+          docker run --volume "$(pwd)":/home/user/hostcwd buildozer android debug
+
+      - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v2
         with:
-          name: kivy-apk
-          path: bin
+          name: my-android-app
+          path: ./bin
+
